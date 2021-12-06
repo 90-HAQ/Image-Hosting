@@ -34,7 +34,6 @@ class verifyAccount
         {
             $email_verified = $find['email_verified_at']; 
 
-        
             if(!empty($email_verified))
             {
                 return $next($req->merge(['user_data' => $find]));   

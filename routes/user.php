@@ -28,3 +28,20 @@ Route::get('/welcome_login/{email}/{verify_token}', [UserCredentialsController::
 
 // user login
 Route::post('/login', [UserCredentialsController::class, 'login'])->middleware('verifyAccount');
+
+// user forget password
+Route::post('/forget_password', [UserCredentialsController::class, 'userForgetPassword']);
+
+// user change password
+Route::post('/change_password', [UserCredentialsController::class, 'userChangePassword']);
+
+
+// token authentication
+Route::group(['middleware' => "tokenAuth"], function()
+{
+    // User profile update 
+    Route::post('/user_update_profile', [UserCredentialsController::class, 'user_update_profile_details']);
+
+    // user logout
+    Route::post('/logout', [UserCredentialsController::class, 'user_logout']);
+});
