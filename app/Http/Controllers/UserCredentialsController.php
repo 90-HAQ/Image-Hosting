@@ -179,9 +179,12 @@ class UserCredentialsController extends Controller
 
                 // get validated data
                 $token = $req->input('token');
-                if(empty($req->profile))
+                $profile_path = $req->file('profile');
+
+                dd($profile_path);
+                if(empty($profile))
                 {
-                    $profile = null;    
+                    $profile_path = null;    
                 }
                 else
                 {

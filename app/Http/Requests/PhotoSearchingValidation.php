@@ -6,7 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Contracts\Validation\Validator;
 
-class SignupValidation extends FormRequest
+class PhotoSearchingValidation extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,13 +25,9 @@ class SignupValidation extends FormRequest
      */
     public function rules()
     {
-        return [
-            // 'profile'    =>   'required',
-            'profile'    =>   'mimes:jpeg,jpg,png,gif|required|max:20000',
-            'name'       =>   'required|alpha',
-            'age'        =>   'required|numeric',   
-            'password'   =>   'required|min:5|string',
-            'email'      =>   'required|email',
+        return 
+        [
+            'token'       =>    'required',
         ];
     }
 
@@ -39,9 +35,11 @@ class SignupValidation extends FormRequest
     {
         throw new HttpResponseException(response()->json(
         [
+
             'success'   => false,
             'message'   => 'Validation errors',
             'data'      => $validator->errors()
+
         ]));
 
     }

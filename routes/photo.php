@@ -23,3 +23,6 @@ Route::post('user_upload_photo', [PhotosController::class, 'upload_photo'])->mid
 
 // delete photo 
 Route::post('user_delete_photo', [PhotosController::class, 'delete_photo'])->middleware('tokenAuth');
+
+// search photo
+Route::post('user_search_photo', [PhotosController::class, 'search_photos'])->middleware('tokenAuth');

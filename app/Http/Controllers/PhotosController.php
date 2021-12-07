@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Services\MongoDatabaseConnection; // Make connection with MongoDB
 use App\Http\Requests\PhotoUploadValidation; // PhotoUploadValidation Request
 use App\Http\Requests\PhotoDeleteValidation; // PhotoDeleteValidation Request
+use App\Http\Requests\PhotoSearchingValidation; // PhotoSearchingValidation Request 
 
 
 class PhotosController extends Controller
@@ -142,8 +143,66 @@ class PhotosController extends Controller
         }
     }
 
-    public function give_access_to()
+    public function search_photos(PhotoSearchingValidation $req)
     {
+        try
+        {
+            // get all record of user from middleware where token is getting checked
+            $user_record = $req->user_data;
+
+            if(!empty($user_record))
+            {
+                // get user id from middleware 
+                $uid = $user_record->_id;
+                // this error will be always shown so ignore it.
+                $uuid = new \MongoDB\BSON\ObjectId($uid);
+
+                $date = $req->input('date');
+                $time = $req->input('time');
+                $name = $req->input('name');
+                $extension = $req->input('extension');
+                $accessors = $req->input('accessors');
+
+                //dd($date, $time, $name, $extension, $accessors);
+
+                $put_data = [];
+
+                if($uid)            { $put_data['user_id'] = $uid; } // check name is null or not.
+                if($name)           { $put_data['photo_name'] = $name; } // check name is null or not.
+                if($extension)      { $put_data['Photo_extension'] = $extension; } // check extension is null or not.
+                if($date)           { $put_data['date'] = $date; } // check date is null or not.
+                if($time)           { $put_data['time'] = $time; } // check time is null or not.
+                if($accessors)      { $put_data['access'] = $accessors; } // check accessors is null or not.
+                
+
+                $coll = new MongoDatabaseConnection();
+                $table = 'photos';
+                $coll2 = $coll->db_connection();
+        
+                $data = $coll2->$table->find($put_data);
+
+                // converts objects into json and returns 
+                //$objects = json_decode(json_encode($data->toArray(),true));
+                $objects = $data->toArray();
+
+                if(!empty($objects))
+                {
+                    return response(['Message'=> $objects]);
+                }
+                else
+                {
+                    return response(['Message'=> 'Searched Data not found.']);
+                }   
+            }
+            else
+            {
+                return response()->json(['Message'=>'User does not exist.'], 404);
+            }
+        }
+        catch(\Exception $show_error)
+        {
+            return response()->json(['Error' => $show_error->getMessage()], 500);
+        }
 
     }
 }
