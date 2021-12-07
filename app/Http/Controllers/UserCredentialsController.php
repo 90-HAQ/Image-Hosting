@@ -24,7 +24,14 @@ class UserCredentialsController extends Controller
         {
             $user = new User;
 
-            $profile = $user->profile = $req->file('profile')->store('profile');
+            // simple store profile image path in storage folder
+            // $profile = $user->profile = $req->file('profile')->store('profile');
+
+            // creates a local path for image so user can access the image directly.
+            $profile_picture=$req->file('profile')->store('images');
+            $profile_path=$_SERVER['HTTP_HOST']."/user/storage/".$profile_picture;
+
+
             $name = $user->name = $req->input('name');
             $age = $user->age = $req->input('age');
             $password = $user->password = Hash::make($req->input('password')); // return hashed password
@@ -39,7 +46,7 @@ class UserCredentialsController extends Controller
 
             $insert = $coll2->$table->insertOne(
             [
-                'profile'              =>       $profile,
+                'profile'              =>       $profile_path,
                 'name'                 =>       $name,
                 'age'                  =>       $age,
                 'password'             =>       $password,
@@ -60,8 +67,6 @@ class UserCredentialsController extends Controller
             {
                 return response(['Message'=>'Something went wrong in Signup Api..!!!'], 400);
             }  
-
-
         }
         catch(\Exception $show_error)
         {
@@ -180,7 +185,12 @@ class UserCredentialsController extends Controller
                 }
                 else
                 {
-                    $profile = $req->file('profile')->store('profile');
+                    // simple way to store profile(image) path.
+                    //$profile = $req->file('profile')->store('profile');
+
+                    // creates a local path for image so user can access the image directly.
+                    $profile_picture=$req->file('profile')->store('images');
+                    $profile_path=$_SERVER['HTTP_HOST']."/user/storage/".$profile_picture;
                 }
                 $name = $req->input('name');
                 $age = $req->input('age');
@@ -196,7 +206,7 @@ class UserCredentialsController extends Controller
 
 
                 // make an associative array and put all details in it.
-                $data_arr = ['profile' => $profile, 'name' => $name, 'age' => $age, 'password' => $password, 'email' => $email];
+                $data_arr = ['profile' => $profile_path, 'name' => $name, 'age' => $age, 'password' => $password, 'email' => $email];
 
                 // run for each loop and update those enteties who are not null.
                 foreach($data_arr as $key=>$value)
@@ -351,11 +361,11 @@ class UserCredentialsController extends Controller
             // get all record of user from middleware where token is getting checked
             $user_record = $req->user_data;
 
+
             if(!empty($user_record))
             {
                 // get token id from middleware 
                 $token = $user_record->remember_token;
-
 
                 $coll = new MongoDatabaseConnection();
                 $table = 'users';

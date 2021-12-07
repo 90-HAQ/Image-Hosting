@@ -19,9 +19,23 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 */
 
+// Route that create a localpath for images.
+Route::any('/storage/images/{filename}',function(Request $request, $filename){
+
+    $headers = ["Cache-Control" => "no-store, no-cache, must-revalidate, max-age=0"];
+
+    $path = storage_path("app/images".'/'.$filename);
+
+    if (file_exists($path)) 
+    {
+        return response()->download($path, null, $headers, null);
+    }
+    return response()->json(["error"=>"error in fetching profile picture"],400);
+});
+
 
 // Signup Route for User
-Route::post('/signup', [UserCredentialsController::class, 'signup'])->middleware('existAccount');;
+Route::post('/signup', [UserCredentialsController::class, 'signup'])->middleware('existAccount');
 
 // user email verification
 Route::get('/welcome_login/{email}/{verify_token}', [UserCredentialsController::class, 'welcome_to_login']);

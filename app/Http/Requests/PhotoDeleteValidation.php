@@ -6,7 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Contracts\Validation\Validator;
 
-class LoginValidation extends FormRequest
+class PhotoDeleteValidation extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,9 +25,9 @@ class LoginValidation extends FormRequest
      */
     public function rules()
     {
-        return [
-            'email'     =>  'required|email',
-            'password'  =>  'required|min:5|string',
+        return 
+        [
+            'photoID'     =>  'required|string',
         ];
     }
 

@@ -30,7 +30,6 @@ class customAuth
                 'remember_token' => $token,
             ]);
 
-
             if(!empty($find))
             {
                 return $next($req->merge(['user_data' => $find]));
