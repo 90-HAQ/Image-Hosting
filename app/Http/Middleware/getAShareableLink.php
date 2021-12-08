@@ -17,6 +17,19 @@ class getAShareableLink
      */
     public function handle(Request $req, Closure $next)
     {
+
+        /***
+         * 
+         * check if image is hidden 
+         * 
+         * check if image is public
+         * 
+         * check if image is private 
+         * 
+         */
+
+
+
         $token = $req->token;
         $photoID = $req->photoID;
         $photoID = new \MongoDB\BSON\ObjectId($photoID);
