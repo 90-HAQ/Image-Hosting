@@ -47,7 +47,5 @@ class verifyAccount
         {
             return response()->json(['Message' => 'Record does not exists in our database.'], 403);   
         }
-
-
     }
 }

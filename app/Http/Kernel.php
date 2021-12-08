@@ -67,5 +67,6 @@ class Kernel extends HttpKernel
         'accountExistOrNot' => \App\Http\Middleware\accountExistOrNot::class,
         'verifyAccount' => \App\Http\Middleware\verifyAccount::class,
         'tokenAuth' => \App\Http\Middleware\customAuth::class,
+        'getAShareableLink' => \App\Http\Middleware\getAShareableLink::class,
     ];
 }

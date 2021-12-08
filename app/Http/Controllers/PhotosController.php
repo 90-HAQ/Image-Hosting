@@ -9,6 +9,8 @@ use App\Http\Requests\PhotoDeleteValidation; // PhotoDeleteValidation Request
 use App\Http\Requests\PhotoSearchingValidation; // PhotoSearchingValidation Request 
 use App\Http\Requests\PhotoMakePublic; // PhotoMakePublic Request
 use App\Http\Requests\PhotoMakePrivate; // PhotoMakePrivate Request
+use App\Http\Requests\RemovePrivateSpecficEmail; // RemovePrivateSpecficEmail Request
+
 
 
 class PhotosController extends Controller
@@ -145,6 +147,8 @@ class PhotosController extends Controller
         }
     }
 
+
+    // user search photo / image
     public function search_photos(PhotoSearchingValidation $req)
     {
         try
@@ -208,6 +212,31 @@ class PhotosController extends Controller
         }
     }
 
+
+    // remove private access to make image public / hidden
+    public function remove_private_access($photoID, $uid)
+    {
+        $coll = new MongoDatabaseConnection();
+        $table = 'photos';
+        $coll2 = $coll->db_connection();
+
+        $find = $coll2->$table->findOne(
+        [
+            '_id' => $photoID
+        ]);
+
+        $access = $find['access'];
+
+        if($access == "private")
+        {
+            $coll2->$table->updateOne(array("_id" => $photoID, "user_id" => $uid),
+            array('$unset'=>array('photo_access_to' => '')));
+
+            return response()->json(['Message'=>'photo private access email removed'], 200);   
+        }
+    }     
+
+
     // make image / photo public
     public function make_photo_public(PhotoMakePublic $req)
     {
@@ -225,6 +254,8 @@ class PhotosController extends Controller
             $photoID = new \MongoDB\BSON\ObjectId($photoID); // this error will be always shown so ignore it.
             
             $access = 'public'; // make user photo public
+
+            $this->remove_private_access($photoID, $uid); // if image is alread private then it will be updated
 
             $coll = new MongoDatabaseConnection();
             $table = 'photos';
@@ -265,6 +296,8 @@ class PhotosController extends Controller
             $photoID = new \MongoDB\BSON\ObjectId($photoID); // this error will be always shown so ignore it.
             
             $access = 'hidden'; // make user photo public
+
+            $this->remove_private_access($photoID, $uid); // if image is alread private then it will be updated
 
             $coll = new MongoDatabaseConnection();
             $table = 'photos';
@@ -307,9 +340,8 @@ class PhotosController extends Controller
             
             $assess_emails = $req->input('assess_emails'); // get emails for private photo in a variable
             $names_arr = explode(',', $assess_emails); // seprate those emails in array
-    
-            
 
+        
             $coll = new MongoDatabaseConnection();
             $table = 'photos';
             $coll2 = $coll->db_connection();
@@ -327,7 +359,7 @@ class PhotosController extends Controller
 
             if(!empty($update1) && !empty($update2))
             {
-                return response(['Message'=>'Photo Updated to Hidden'], 200);   
+                return response()->json(['Message'=>'Photo Updated to Private'], 200);   
             }
             else
             {
@@ -339,4 +371,81 @@ class PhotosController extends Controller
             return response()->json(['Error' => $show_error->getMessage()], 500);
         }
     }    
+
+
+    // remove the email for private access
+    public function remove_specfic_email(RemovePrivateSpecficEmail $req)
+    {
+        try
+        {
+            // get all record of user from middleware where token is getting checked
+            $user_record = $req->user_data;
+
+            $uid = $user_record->_id; // get user id from middleware 
+            $uid = new \MongoDB\BSON\ObjectId($uid); // this error will be always shown so ignore it.
+
+            $photoID = $req->input('photoID');
+            $photoID = new \MongoDB\BSON\ObjectId($photoID); // this error will be always shown so ignore it.
+
+            $email = $req->input('email');
+
+            $coll = new MongoDatabaseConnection();
+            $table = 'photos';
+            $coll2 = $coll->db_connection();
+
+            $find = $coll2->$table->findOne(
+            [
+                '_id' => $photoID
+            ]);
+
+            $access = $find['access'];
+
+            if($access == "private")
+            {
+                $coll2->$table->updateOne(array("_id" => $photoID, "user_id" => $uid, "access" => $access),
+                array('$pull'=>array('photo_access_to' => $email)));
+    
+                return response()->json(['Message'=>'photo private access email removed'], 200);   
+            }
+            else
+            {
+                return response()->json(['Message'=>'photo is not private'], 200);   
+            }
+        }
+        catch(\Exception $show_error)
+        {
+            return response()->json(['Error' => $show_error->getMessage()], 500);
+        }
+    }
+
+    public function get_a_shareable_link()
+    {
+        // get all record of user from middleware where token is getting checked
+        $user_record = $req->user_data;
+
+        $uid = $user_record->_id; // get user id from middleware 
+        $uid = new \MongoDB\BSON\ObjectId($uid); // this error will be always shown so ignore it.
+
+        $photoID = $req->input('photoID');
+        $photoID = new \MongoDB\BSON\ObjectId($photoID); // this error will be always shown so ignore it.
+
+        $coll = new MongoDatabaseConnection();
+        $table = 'photos';
+        $coll2 = $coll->db_connection();
+
+        $find = $coll2->$table->findOne(
+        [
+            '_id'       =>   $photoID,
+            'user_id'   =>   $uid
+
+        ]);
+
+        $image = $find['photo_path'];
+        
+        dd($image);
+
+        return response($image);
+
+        return response()->json(['Image Path'=> $image], 200);   
+    }
 }
