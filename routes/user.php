@@ -44,7 +44,7 @@ Route::get('/welcome_login/{email}/{verify_token}', [UserCredentialsController::
 Route::post('/login', [UserCredentialsController::class, 'login'])->middleware('verifyAccount');
 
 // user forget password
-Route::post('/forget_password', [UserCredentialsController::class, 'userForgetPassword']);
+Route::post('/forget_password', [UserCredentialsController::class, 'userForgetPassword'])->middleware('accountExistOrNot');
 
 // user change password
 Route::post('/change_password', [UserCredentialsController::class, 'userChangePassword']);

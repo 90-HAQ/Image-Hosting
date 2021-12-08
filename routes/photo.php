@@ -26,3 +26,12 @@ Route::post('user_delete_photo', [PhotosController::class, 'delete_photo'])->mid
 
 // search photo
 Route::post('user_search_photo', [PhotosController::class, 'search_photos'])->middleware('tokenAuth');
+
+// make photo public
+Route::post('make_photo_public', [PhotosController::class, 'make_photo_public'])->middleware('tokenAuth');
+
+// make photo hidden
+Route::post('make_photo_hidden', [PhotosController::class, 'make_photo_hidden'])->middleware('tokenAuth');
+
+// make photo private
+Route::post('make_photo_private', [PhotosController::class, 'make_photo_private'])->middleware('tokenAuth');

@@ -181,7 +181,6 @@ class UserCredentialsController extends Controller
                 $token = $req->input('token');
                 $profile_path = $req->file('profile');
 
-                dd($profile_path);
                 if(empty($profile))
                 {
                     $profile_path = null;    

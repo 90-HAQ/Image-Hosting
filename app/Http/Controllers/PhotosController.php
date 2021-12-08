@@ -7,6 +7,8 @@ use App\Services\MongoDatabaseConnection; // Make connection with MongoDB
 use App\Http\Requests\PhotoUploadValidation; // PhotoUploadValidation Request
 use App\Http\Requests\PhotoDeleteValidation; // PhotoDeleteValidation Request
 use App\Http\Requests\PhotoSearchingValidation; // PhotoSearchingValidation Request 
+use App\Http\Requests\PhotoMakePublic; // PhotoMakePublic Request
+use App\Http\Requests\PhotoMakePrivate; // PhotoMakePrivate Request
 
 
 class PhotosController extends Controller
@@ -43,7 +45,7 @@ class PhotosController extends Controller
 
                     // get validated data
                     // creates a local path for image so user can access the image directly.
-                    $access =  $req->access;
+                    $access = 'hidden';
                     
                     $photo=$req->file('photo');
                     
@@ -125,7 +127,7 @@ class PhotosController extends Controller
                 
                 if(!empty($delete))
                 {
-                    return response(['Message'=>'Photo Deleted']);   
+                    return response(['Message'=>'Photo Deleted'], 200);   
                 }
                 else
                 {
@@ -163,11 +165,12 @@ class PhotosController extends Controller
                 $extension = $req->input('extension');
                 $accessors = $req->input('accessors');
 
+
                 //dd($date, $time, $name, $extension, $accessors);
 
                 $put_data = [];
 
-                if($uid)            { $put_data['user_id'] = $uid; } // check name is null or not.
+                if($uid)            { $put_data['user_id'] = $uuid; } // check name is null or not.
                 if($name)           { $put_data['photo_name'] = $name; } // check name is null or not.
                 if($extension)      { $put_data['Photo_extension'] = $extension; } // check extension is null or not.
                 if($date)           { $put_data['date'] = $date; } // check date is null or not.
@@ -203,6 +206,137 @@ class PhotosController extends Controller
         {
             return response()->json(['Error' => $show_error->getMessage()], 500);
         }
-
     }
+
+    // make image / photo public
+    public function make_photo_public(PhotoMakePublic $req)
+    {
+        try
+        {
+            // get all record of user from middleware where token is getting checked
+            $user_record = $req->user_data;
+
+            $uid = $user_record->_id; // get user id from middleware 
+            
+            $uid = new \MongoDB\BSON\ObjectId($uid); // this error will be always shown so ignore it.
+
+            $photoID = $req->input('photoID');
+            
+            $photoID = new \MongoDB\BSON\ObjectId($photoID); // this error will be always shown so ignore it.
+            
+            $access = 'public'; // make user photo public
+
+            $coll = new MongoDatabaseConnection();
+            $table = 'photos';
+            $coll2 = $coll->db_connection();
+
+            $update = $coll2->$table->updateOne(array("_id" => $photoID, "user_id" => $uid),
+            array('$set'=>array('access' => $access)));
+
+            if(!empty($update))
+            {
+                return response(['Message'=>'Photo Updated to Public'], 200);   
+            }
+            else
+            {
+                return response()->json(['Message'=>'You are not allowed to update someone else image.'], 404);
+            }
+        }
+        catch(\Exception $show_error)
+        {
+            return response()->json(['Error' => $show_error->getMessage()], 500);
+        }
+    }
+
+    // make image / photo hidden
+    public function make_photo_hidden(PhotoMakePublic $req)
+    {
+        try
+        {
+            // get all record of user from middleware where token is getting checked
+            $user_record = $req->user_data;
+
+            $uid = $user_record->_id; // get user id from middleware 
+            
+            $uid = new \MongoDB\BSON\ObjectId($uid); // this error will be always shown so ignore it.
+
+            $photoID = $req->input('photoID');
+            
+            $photoID = new \MongoDB\BSON\ObjectId($photoID); // this error will be always shown so ignore it.
+            
+            $access = 'hidden'; // make user photo public
+
+            $coll = new MongoDatabaseConnection();
+            $table = 'photos';
+            $coll2 = $coll->db_connection();
+
+            $update = $coll2->$table->updateOne(array("_id" => $photoID, "user_id" => $uid),
+            array('$set'=>array('access' => $access)));
+
+            if(!empty($update))
+            {
+                return response(['Message'=>'Photo Updated to Hidden'], 200);   
+            }
+            else
+            {
+                return response()->json(['Message'=>'You are not allowed to update someone else image.'], 404);
+            }
+        }
+        catch(\Exception $show_error)
+        {
+            return response()->json(['Error' => $show_error->getMessage()], 500);
+        }
+    }
+
+
+    // make image / photo private
+    public function make_photo_private(PhotoMakePrivate $req)
+    {
+        try
+        {
+            // get all record of user from middleware where token is getting checked
+            $user_record = $req->user_data;
+
+            $uid = $user_record->_id; // get user id from middleware 
+            $uid = new \MongoDB\BSON\ObjectId($uid); // this error will be always shown so ignore it.
+
+            $photoID = $req->input('photoID');
+            $photoID = new \MongoDB\BSON\ObjectId($photoID); // this error will be always shown so ignore it.
+
+            $access = 'private'; // make user photo public
+            
+            $assess_emails = $req->input('assess_emails'); // get emails for private photo in a variable
+            $names_arr = explode(',', $assess_emails); // seprate those emails in array
+    
+            
+
+            $coll = new MongoDatabaseConnection();
+            $table = 'photos';
+            $coll2 = $coll->db_connection();
+
+            $update1 = $coll2->$table->updateOne(array("_id" => $photoID, "user_id" => $uid),
+            array('$set'=>array('access' => $access)));
+
+            // $update2 = $coll2->$table->updateOne(array("_id" => $photoID, "user_id" => $uid),
+            // array('$set'=>array('access_to' => $key)));
+
+            foreach($names_arr as $key)
+            {
+                $update2 = $coll2->$table->updateOne(["_id"=>$photoID, "user_id"=>$uid],['$push'=>["photo_access_to" => $key]]);
+            }
+
+            if(!empty($update1) && !empty($update2))
+            {
+                return response(['Message'=>'Photo Updated to Hidden'], 200);   
+            }
+            else
+            {
+                return response()->json(['Message'=>'You are not allowed to update someone else image.'], 404);
+            }
+        }
+        catch(\Exception $show_error)
+        {
+            return response()->json(['Error' => $show_error->getMessage()], 500);
+        }
+    }    
 }

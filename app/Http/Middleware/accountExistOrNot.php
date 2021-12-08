@@ -4,9 +4,9 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use App\Services\MongoDatabaseConnection; // connection with Mongo Database
+use App\Services\MongoDatabaseConnection; //Database connection with MongoDB
 
-class existingAccount
+class accountExistOrNot
 {
     /**
      * Handle an incoming request.
@@ -17,7 +17,6 @@ class existingAccount
      */
     public function handle(Request $req, Closure $next)
     {
-        
         $email = $req->email;
 
         $coll = new MongoDatabaseConnection();
@@ -31,11 +30,11 @@ class existingAccount
         
         if(!empty($insert))
         {
-            return response()->json(['Message' => 'Account already exists.'], 302);   
+            return $next($req);            
         }
         else
         { 
-            return $next($req);
+            return response()->json(['Message' => 'Account does not exists. / Wrong Credentials (ADE)'], 302);   
         }
     }
 }
