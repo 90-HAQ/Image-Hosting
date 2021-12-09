@@ -459,13 +459,44 @@ class PhotosController extends Controller
     {
         try 
         {
-            $link = $req->image_link;
-            
-            $headers = ["Cache-Control" => "no-store, no-cache, must-revalidate, max-age=0"];
+            $data = $req->image_link;
 
-            $path = storage_path("app/images".'/'.$link);
-            
-            return response()->download($headers, $path);
+            $access = $data['access'];
+            $link = $data['link'];
+
+            $link = explode('/',$req->link);
+            $new_link = $link[4];            
+            $headers = ["Cache-Control" => "no-store, no-cache, must-revalidate, max-age=0"];
+            $path = storage_path("app/images".'/'.$new_link);
+
+
+            if($access == 'public' || $access == 'Public' || $access == 'PUBLIC') // display public image
+            {
+                if(file_exists($path)) 
+                {
+                    return response()->download($path, null, $headers, null);
+                }
+                else
+                {
+                    return response()->json(["error"=>"error in fetching profile picture"],400);
+                }
+            }
+            else if($access == 'hidden' || $access == 'Hidden' || $access == 'HIDDEN')  // display hidden image
+            {
+                $msg = "Not Allowed.";
+                return response()->json(['Message' => $msg]);
+            }
+            else if($access == 'private' || $access == 'Private' || $access == 'PRIVATE') // display private image
+            {
+                if(file_exists($path)) 
+                {
+                    return response()->download($path, null, $headers, null);
+                }
+                else
+                {
+                    return response()->json(["error"=>"error in fetching profile picture"],400);
+                }
+            }            
         }
         catch(\Exception $show_error)
         {

@@ -61,15 +61,17 @@ class getAShareableLink
 
             $check_access = $find1['access']; // get image access type (Public / Hidden / Private)
             $check_mail = $find2['email']; // get email to check if user is allowed to see image or not.
+
+            $new_link = ['access' => $check_access, 'link' => $link];
             
             if($check_access == "public") // check is access is public
            {
-                return $next($req->merge(['image_link' => $link]));   
+                return $next($req->merge(['image_link' => $new_link]));   
            }
            else if($check_access == "hidden") // check is access is hidden
            {
                 // first check user must be login to see his own shared link
-                return $next($req->merge(['image_link' => "Not Allowed"]));   
+                return $next($req->merge(['image_link' => $new_link]));   
            }
            else if($check_access == "private") // check is access is private
            {    
@@ -87,7 +89,7 @@ class getAShareableLink
 
                 if($email_match == true)
                 {
-                    return $next($req->merge(['image_link' => $link]));   
+                    return $next($req->merge(['image_link' => $new_link]));   
                 }
                 else
                 {

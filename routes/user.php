@@ -26,6 +26,8 @@ Route::any('/storage/images/{filename}',function(Request $request, $filename){
 
     $path = storage_path("app/images".'/'.$filename);
 
+    dd($path);
+
     if (file_exists($path)) 
     {
         return response()->download($path, null, $headers, null);
