@@ -20,13 +20,18 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 */
 
 // Route that create a localpath for images.
+
+header("Access-Control-Allow-Origin: *");
+
+header('Access-Control-Allow-Credentials: true');
+
+header('Access-Control-Allow-Headers: *');
+
 Route::any('/storage/images/{filename}',function(Request $request, $filename){
 
     $headers = ["Cache-Control" => "no-store, no-cache, must-revalidate, max-age=0"];
 
     $path = storage_path("app/images".'/'.$filename);
-
-    dd($path);
 
     if (file_exists($path)) 
     {

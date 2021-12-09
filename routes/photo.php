@@ -20,6 +20,12 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 */
 
+header("Access-Control-Allow-Origin: *");
+
+header('Access-Control-Allow-Credentials: true');
+
+header('Access-Control-Allow-Headers: *');
+
 // token authentication
 Route::group(['middleware' => "tokenAuth"], function()
 {
