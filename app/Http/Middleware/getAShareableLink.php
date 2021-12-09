@@ -20,94 +20,84 @@ class getAShareableLink
 
         /***
          * 
-         * check if image is hidden 
+         * check if image is public then allow to anyone
          * 
-         * check if image is public
+         * check if image is hidden  is not allowed
          * 
-         * check if image is private 
+         * check if image is private then chack given access
          * 
-         */
-
-
+         */ 
 
         $token = $req->token;
-        $photoID = $req->photoID;
-        $photoID = new \MongoDB\BSON\ObjectId($photoID);
+        $link = $req->input('link');
+        
 
-        $coll = new MongoDatabaseConnection();
-        $table = 'photos';
-        $coll2 = $coll->db_connection();
+        $coll = new MongoDatabaseConnection(); // get database file
+        $coll2 = $coll->db_connection(); // make db connection
 
+        // another way to get alll record with conditions of 
+        //(photoid and check email (then wmail will be required from user so it is not effective))
+        /* $find1 = $coll2->$table->findOne(["_id"=> $photoID, "photo_access_to" => $check_email]); */
+
+        $table = 'photos'; // table name
         $find1 = $coll2->$table->findOne(
         [
-            '_id' => $photoID
+            'photo_path' => $link
         ]);
 
 
-        // check if photo exists by (photo_id)
+        $table = 'users'; // table name
+        $find2 = $coll2->$table->findOne(
+        [
+            'remember_token' => $token
+        ]);
+
+        //dd($find1, $find2); // check if image record and user record is fetching or not.
+
+
+        // check if photo exists by (photo_record)
         if(!empty($find1))
         {
 
-            // $coll = new MongoDatabaseConnection();
-            $table = 'users';
-            // $coll2 = $coll->db_connection();
-            $find2 = $coll2->$table->findOne(
-            [
-                'remember_token' => $token
-            ]);
-
-    
+            $check_access = $find1['access']; // get image access type (Public / Hidden / Private)
             $check_mail = $find2['email']; // get email to check if user is allowed to see image or not.
-
-            // get data of photo_id in a data
-            $email_data = $find1['photo_access_to'];
-
-            $email_match = false;            
             
-            foreach($email_data as $key)
-            {
-                if($key == $check_mail)
+            if($check_access == "public") // check is access is public
+           {
+                return $next($req->merge(['image_link' => $link]));   
+           }
+           else if($check_access == "hidden") // check is access is hidden
+           {
+                // first check user must be login to see his own shared link
+                return $next($req->merge(['image_link' => "Not Allowed"]));   
+           }
+           else if($check_access == "private") // check is access is private
+           {    
+                $email_data = $find1['photo_access_to']; // get data of private photo access to email in a variable
+
+                $email_match = false;            
+                
+                foreach($email_data as $key)
                 {
-                    $email_match = true;
-                }
-            }
+                    if($key == $check_mail)
+                    {
+                        $email_match = true;
+                    }
+                }   //dd($email_match); // value is matching ok... done
 
-            dd($email_match); // value is matching ok... done
-
-            /*
-
-            $table = 'photos';
-            // $coll2 = $coll->db_connection();
-            $find2 = $coll2->$table->findOne(
-            [
-                'remember_token' => $token
-            ]);
-
-    
-            /*if(!empty($find))
-            {
-                $email_verified = $find['email_verified_at']; 
-    
-                if(!empty($email_verified))
+                if($email_match == true)
                 {
-                    return $next($req->merge(['user_data' => $find]));   
+                    return $next($req->merge(['image_link' => $link]));   
                 }
                 else
-                { 
-                    return response()->json(['Message' => 'Email is not verified. Please verify your email first'], 403);   
+                {
+                    return $next($req->merge(['image_link' => "Not Allowed"]));                       
                 }
-            }
-            else
-            {
-                return response()->json(['Message' => 'Record does not exists in our database.'], 403);   
-            }*/
-            
+           }   
         }
         else
         {
             return response()->json(['Message' => 'Photo ID does not exists.'], 403);   
         }
-
-
     }
 }

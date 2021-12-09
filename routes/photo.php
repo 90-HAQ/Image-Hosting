@@ -24,27 +24,30 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::group(['middleware' => "tokenAuth"], function()
 {
     // upload photo 
-    Route::post('user_upload_photo', [PhotosController::class, 'upload_photo']);
+    Route::post('/user_upload_photo', [PhotosController::class, 'upload_photo']);
 
     // delete photo 
-    Route::post('user_delete_photo', [PhotosController::class, 'delete_photo']);
+    Route::post('/user_delete_photo', [PhotosController::class, 'delete_photo']);
 
     // search photo
-    Route::post('user_search_photo', [PhotosController::class, 'search_photos']);
+    Route::post('/user_search_photo', [PhotosController::class, 'search_photos']);
 
     // make photo public
-    Route::post('make_photo_public', [PhotosController::class, 'make_photo_public']);
+    Route::post('/make_photo_public', [PhotosController::class, 'make_photo_public']);
 
     // make photo hidden
-    Route::post('make_photo_hidden', [PhotosController::class, 'make_photo_hidden']);
+    Route::post('/make_photo_hidden', [PhotosController::class, 'make_photo_hidden']);
 
     // make photo private
-    Route::post('make_photo_private', [PhotosController::class, 'make_photo_private']);
+    Route::post('/make_photo_private', [PhotosController::class, 'make_photo_private']);
 
     // remove specfic access for email for private photo
-    Route::post('remove_photo_private_email', [PhotosController::class, 'remove_specfic_email']);
+    Route::post('/remove_photo_private_email', [PhotosController::class, 'remove_specfic_email']);
 
     // get a shareable link
-    Route::post('get_a_shareable_link', [PhotosController::class, 'get_a_shareable_link'])->middleware('getAShareableLink');
+    Route::post('/get_a_shareable_link', [PhotosController::class, 'get_a_shareable_link']);
+
+    // show a shareable link
+    Route::post('/show_link', [PhotosController::class, 'show_link'])->middleware('getAShareableLink');
 });
 

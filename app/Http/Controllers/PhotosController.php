@@ -10,6 +10,8 @@ use App\Http\Requests\PhotoSearchingValidation; // PhotoSearchingValidation Requ
 use App\Http\Requests\PhotoMakePublic; // PhotoMakePublic Request
 use App\Http\Requests\PhotoMakePrivate; // PhotoMakePrivate Request
 use App\Http\Requests\RemovePrivateSpecficEmail; // RemovePrivateSpecficEmail Request
+use App\Http\Requests\GetAShareableLink; // GetAShareableLink Request
+use App\Http\Requests\ShowShareableLinkValidation; // ShowShareableLinkValidation Request
 
 
 
@@ -418,34 +420,56 @@ class PhotosController extends Controller
         }
     }
 
-    public function get_a_shareable_link()
+
+    // generate image link
+    public function get_a_shareable_link(GetAShareableLink $req)
     {
-        // get all record of user from middleware where token is getting checked
-        $user_record = $req->user_data;
+        try
+        {
+            $photoID = $req->input('photoID');
+            $photoID = new \MongoDB\BSON\ObjectId($photoID); // this error will be always shown so ignore it.
 
-        $uid = $user_record->_id; // get user id from middleware 
-        $uid = new \MongoDB\BSON\ObjectId($uid); // this error will be always shown so ignore it.
+            $coll = new MongoDatabaseConnection();
+            $table = 'photos';
+            $coll2 = $coll->db_connection();
 
-        $photoID = $req->input('photoID');
-        $photoID = new \MongoDB\BSON\ObjectId($photoID); // this error will be always shown so ignore it.
+            $find = $coll2->$table->findOne(
+            [
+                '_id' => $photoID
+            ]);
 
-        $coll = new MongoDatabaseConnection();
-        $table = 'photos';
-        $coll2 = $coll->db_connection();
+            if(!empty($find))
+            {
+                $link = $find['photo_path'];
+                return response()->json(['Image Link :' => $link], 200); 
+            }
+            else
+            {
+                return response()->json(['Message' => 'Link not generated.'], 400); 
+            }
+        }   
+        catch(\Exception $show_error)
+        {
+            return response()->json(['Error' => $show_error->getMessage()], 500);
+        }
+    }
 
-        $find = $coll2->$table->findOne(
-        [
-            '_id'       =>   $photoID,
-            'user_id'   =>   $uid
+    // show image link
+    public function show_link(ShowShareableLinkValidation $req)
+    {
+        try 
+        {
+            $link = $req->image_link;
+            
+            $headers = ["Cache-Control" => "no-store, no-cache, must-revalidate, max-age=0"];
 
-        ]);
-
-        $image = $find['photo_path'];
-        
-        dd($image);
-
-        return response($image);
-
-        return response()->json(['Image Path'=> $image], 200);   
+            $path = storage_path("app/images".'/'.$link);
+            
+            return response()->download($headers, $path);
+        }
+        catch(\Exception $show_error)
+        {
+            return response()->json(['Error' => $show_error->getMessage()], 500);
+        }
     }
 }

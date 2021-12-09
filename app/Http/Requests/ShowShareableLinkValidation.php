@@ -6,7 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Contracts\Validation\Validator;
 
-class GetAShareableLink extends FormRequest
+class ShowShareableLinkValidation extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -27,8 +27,8 @@ class GetAShareableLink extends FormRequest
     {
         return 
         [
-            'token'       =>  'required',
-            'photoID'     =>  'required',
+            'token'    =>  'required',
+            'link'     =>  'required|string',
         ];
     }
 
