@@ -25,9 +25,10 @@ class SignupValidation extends FormRequest
      */
     public function rules()
     {
-        return [
+        return 
+        [
             // 'profile'    =>   'required',
-            'profile'    =>   'mimes:jpeg,jpg,png,gif|required|max:20000',
+            //'profile'    =>   'mimes:jpeg,jpg,png,gif|required|max:20000',
             'name'       =>   'required|alpha',
             'age'        =>   'required|numeric',   
             'password'   =>   'required|min:5|string',

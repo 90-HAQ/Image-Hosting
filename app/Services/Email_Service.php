@@ -10,20 +10,33 @@ class Email_Service
     // mail sending function
     public function sendmail($sendto, $verify_token)
     {
+
+        // get request type and change http tppe according to it.
+        if(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on')
+        {
+            $url = "https://";
+        }
+        else
+        {
+            $url = "http://";
+        }
+
+        $url.= $_SERVER['HTTP_HOST'];
+        
         $details = [
             'title' =>  'Signup Verification.',
-            'body'  =>  'Please Verify your Account. Please Click on this link to verify http://127.0.0.1:8000/user/welcome_login'.'/'.$sendto.'/'.$verify_token
+            'body'  =>  'Please Verify your Account. Please Click on this link to verify ' .$url.'/user/welcome_login'.'/'.$sendto.'/'.$verify_token
         ];
 
         // queue to mail job object and function
         // user only send email and at backend email is dispatched automatically. 
         //$email = new SendEmailJob($sendto, $details);
-        //dispatch(new SendEmailJob($sendto, $details));
+        dispatch(new SendEmailJob($sendto, $details));
         //$email->handle();
 
 
-        // simple way to send a email
-        Mail::to($sendto)->send(new testmail($details));
+        // simple way to send a emails
+        //Mail::to($sendto)->send(new testmail($details));
         return response()->json(['Message' => 'Email has been sent for Verification, Please verify your Account.']);
     }
 
@@ -39,10 +52,10 @@ class Email_Service
         // queue to mail job object and function 
         
         //$email = new SendEmailJob($sendto, $details);
-        //dispatch(new SendEmailJob($mail, $details));
+        dispatch(new SendEmailJob($mail, $details));
         //$email->handle();
 
-        Mail::to($mail)->send(new testmail($details));
+        //Mail::to($mail)->send(new testmail($details));
         return response()->json(['Message' => 'An OTP has been sent to '.$mail.' , Please verify and proceed further.']);
     }
 

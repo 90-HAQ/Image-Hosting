@@ -26,6 +26,22 @@ header('Access-Control-Allow-Credentials: true');
 
 header('Access-Control-Allow-Headers: *');
 
+
+// for image route // Route that create a localpath for images.
+Route::any('/storage/images/{filename}',function(Request $request, $filename){
+
+    $headers = ["Cache-Control" => "no-store, no-cache, must-revalidate, max-age=0"];
+
+    $path = storage_path("app/images".'/'.$filename);
+
+    if (file_exists($path)) 
+    {
+        return response()->download($path, null, $headers, null);
+    }
+    return response()->json(["error"=>"error in fetching profile picture"],400);
+});
+
+
 // token authentication
 Route::group(['middleware' => "tokenAuth"], function()
 {

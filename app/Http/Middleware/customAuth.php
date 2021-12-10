@@ -17,7 +17,8 @@ class customAuth
      */
     public function handle(Request $req, Closure $next)
     {
-        $token = $req->token;
+        //$token = $req->token;
+        $token = $req->bearerToken();
 
         if(!empty($token))
         {

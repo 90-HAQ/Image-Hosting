@@ -140,6 +140,9 @@ return [
         /*
          * Laravel Framework Service Providers...
          */
+        Jenssegers\Mongodb\MongodbServiceProvider::class, // jessenger class
+        Jenssegers\Mongodb\MongodbQueueServiceProvider::class, // jessenger class
+        
         Illuminate\Auth\AuthServiceProvider::class,
         Illuminate\Broadcasting\BroadcastServiceProvider::class,
         Illuminate\Bus\BusServiceProvider::class,

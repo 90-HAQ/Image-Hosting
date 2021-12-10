@@ -27,10 +27,29 @@ class UserCredentialsController extends Controller
             // simple store profile image path in storage folder
             // $profile = $user->profile = $req->file('profile')->store('profile');
 
-            // creates a local path for image so user can access the image directly.
-            $profile_picture=$req->file('profile')->store('images');
-            $profile_path=$_SERVER['HTTP_HOST']."/user/storage/".$profile_picture;
+            
+            $base64_string =  $req->image; // get file in encoded form from the user(front-end)
+            $extension = explode('/', explode(':', substr($base64_string, 0, strpos($base64_string, ';')))[1])[1]; // .jpg .png .pdf
+            $replace = substr($base64_string, 0, strpos($base64_string, ',')+1);
+            $image = str_replace($replace, '', $base64_string); // will get the image name but not original name because the original name is changed. 
+            $image = str_replace(' ', '+', $image); // get image without spaces
+            $fileName = time().'.'.$extension; // get file extension
 
+            // get request type and change http tppe according to it.
+            if(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on')
+            {
+                $url = "https://";
+            }
+            else
+            {
+                $url = "http://";
+            }
+
+            $url.= $_SERVER['HTTP_HOST'];
+            $profile_path=$url."/user/storage/images/".$fileName; // set file path in database
+            $path=storage_path('app\\images').'\\'.$fileName; // set file path in project
+            file_put_contents($path,base64_decode($image)); // put path in project storage
+            
 
             $name = $user->name = $req->input('name');
             $age = $user->age = $req->input('age');
@@ -80,6 +99,7 @@ class UserCredentialsController extends Controller
     {
         try
         {
+            
             $coll = new MongoDatabaseConnection();
             $table = 'users';
             $coll2 = $coll->db_connection();
@@ -141,7 +161,7 @@ class UserCredentialsController extends Controller
                     $coll2->$table->updateMany(array("email"=>$email),
                     array('$set'=>array('remember_token' => $jwt, 'status' => '1')));
     
-                    return response()->json(['Message' => 'Now you are logged In', 'access_token' => $jwt], 200);
+                    return response()->json(['Message' => 'Now you are logged In', 'token' => $jwt], 200);
                 }
                 else
                 {
@@ -362,7 +382,6 @@ class UserCredentialsController extends Controller
         {
             // get all record of user from middleware where token is getting checked
             $user_record = $req->user_data;
-
 
             if(!empty($user_record))
             {
