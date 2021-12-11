@@ -27,21 +27,6 @@ header('Access-Control-Allow-Credentials: true');
 header('Access-Control-Allow-Headers: *');
 
 
-// for image route // Route that create a localpath for images.
-Route::any('/storage/images/{filename}',function(Request $request, $filename){
-
-    $headers = ["Cache-Control" => "no-store, no-cache, must-revalidate, max-age=0"];
-
-    $path = storage_path("app/images".'/'.$filename);
-
-    if (file_exists($path)) 
-    {
-        return response()->download($path, null, $headers, null);
-    }
-    return response()->json(["error"=>"error in fetching profile picture"],400);
-});
-
-
 // token authentication
 Route::group(['middleware' => "tokenAuth"], function()
 {
@@ -70,11 +55,10 @@ Route::group(['middleware' => "tokenAuth"], function()
     Route::post('/get_a_shareable_link', [PhotosController::class, 'get_a_shareable_link']);
 
     // show a shareable link post (private, hidden)
-    Route::post('/show_link', [PhotosController::class, 'show_link'])->middleware('getAShareableLink');
-
-    // show a shareable link get (public)
-    Route::get('/show_link', [PhotosController::class, 'show_link'])->middleware('getAShareableLink');
-
-    
+    Route::post('/show_link', [PhotosController::class, 'show_link'])->middleware('showlink');    
 });
+
+// show a shareable link get (public) / if user is not
+Route::get('/show_link', [PhotosController::class, 'show_link'])->middleware('showlink');
+
 

@@ -27,7 +27,6 @@ class GetAShareableLink extends FormRequest
     {
         return 
         [
-            'token'       =>  'required',
             'photoID'     =>  'required',
         ];
     }

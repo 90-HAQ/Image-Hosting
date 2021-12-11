@@ -27,7 +27,7 @@ class PhotoSearchingValidation extends FormRequest
     {
         return 
         [
-            'token'       =>    'required',
+            //'token'       =>    'required',
         ];
     }
 

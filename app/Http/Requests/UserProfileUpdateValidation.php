@@ -27,7 +27,7 @@ class UserProfileUpdateValidation extends FormRequest
     {
         return 
         [
-            'token'       =>    'required',
+            'name'       =>    'required',
         ];
     }
 

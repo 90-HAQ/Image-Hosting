@@ -12,8 +12,7 @@ use App\Http\Requests\PhotoMakePrivate; // PhotoMakePrivate Request
 use App\Http\Requests\RemovePrivateSpecficEmail; // RemovePrivateSpecficEmail Request
 use App\Http\Requests\GetAShareableLink; // GetAShareableLink Request
 use App\Http\Requests\ShowShareableLinkValidation; // ShowShareableLinkValidation Request
-
-
+use App\Services\Base_64_Conversion; // get base-64 conversion
 
 class PhotosController extends Controller
 {
@@ -40,50 +39,29 @@ class PhotosController extends Controller
                     'remember_token' => $token,
                 ]);
 
-
                 if(!empty($find))
                 {
                     // get user id
                     $id = $find['_id']; 
 
                     // get validated data
-                    // creates a local path for image so user can access the image directly.
                     $access = 'hidden';
+                    $name = $req->name;
+                    $non_base_image = $req->photo;
 
-                    $name = $req->image_name;
-                    $base64_string =  $req->image; // get file in encoded form from the user(front-end)
-                    $extension = explode('/', explode(':', substr($base64_string, 0, strpos($base64_string, ';')))[1])[1]; // .jpg .png .pdf
-                    $replace = substr($base64_string, 0, strpos($base64_string, ',')+1);
-                    $image = str_replace($replace, '', $base64_string); // will get the image name but not original name because the original name is changed. 
-                    $image = str_replace(' ', '+', $image); // get image without spaces
-                    $fileName = time().'.'.$extension; // get file extension
-        
-                    // get request type and change http tppe according to it.
-                    if(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on')
-                    {
-                        $url = "https://";
-                    }
-                    else
-                    {
-                        $url = "http://";
-                    }
-        
-                    $url.= $_SERVER['HTTP_HOST'];
-                    $photo_path=$url."/user/storage/images/".$fileName; // set file path in database
-                    $path=storage_path('app\\images').'\\'.$fileName; // set file path in project
-                    file_put_contents($path,base64_decode($image)); // put path in project storage
-    
+                    $base = new Base_64_Conversion; // base service image conversion service
+                    $image = $base->base_64_coonversion_of_image($non_base_image); // get function data in return 
+                    $profile_path = $image['path'];
+                    $extension = $image['extension'];
                     
-                    $coll = new MongoDatabaseConnection();
+
                     $table = 'photos';
-                    $coll2 = $coll->db_connection();
-        
                     $insert = $coll2->$table->insertOne(
                     [
                         'user_id'           =>       $id,
                         'photo_name'        =>       $name,
                         'Photo_extension'   =>       $extension,
-                        'photo_path'        =>       $photo_path,
+                        'photo_path'        =>       $profile_path,
                         'date'              =>       date("d:m:Y"), // date , month ,year
                         'time'              =>       date("h:i:sa"), // hours , minutes ,seconds
                         'access'            =>       $access,
@@ -270,16 +248,28 @@ class PhotosController extends Controller
             $table = 'photos';
             $coll2 = $coll->db_connection();
 
-            $update = $coll2->$table->updateOne(array("_id" => $photoID, "user_id" => $uid),
-            array('$set'=>array('access' => $access)));
+            $find = $coll2->$table->findOne(
+            [
+                '_id' => $photoID
+            ]);
 
-            if(!empty($update))
+            if(!empty($find))
             {
-                return response(['Message'=>'Photo Updated to Public'], 200);   
+                $update = $coll2->$table->updateOne(array("_id" => $photoID, "user_id" => $uid),
+                array('$set'=>array('access' => $access)));
+    
+                if(!empty($update))
+                {
+                    return response(['Message'=>'Photo Updated to Public'], 200);   
+                }
+                else
+                {
+                    return response()->json(['Message'=>'You are not allowed to update someone else image.'], 404);
+                }
             }
             else
             {
-                return response()->json(['Message'=>'You are not allowed to update someone else image.'], 404);
+                return response()->json(['Message'=>'Image / Photo does not exists.'], 404);
             }
         }
         catch(\Exception $show_error)
@@ -462,7 +452,7 @@ class PhotosController extends Controller
     }
 
     // show image link
-    public function show_link(ShowShareableLinkValidation $req)
+    public function show_link(ShowShareableLinkValidation $req, $show_link)
     {
         try 
         {
@@ -470,14 +460,15 @@ class PhotosController extends Controller
 
             $access = $data['access'];
             $link = $data['link'];
+            $permission = $data['permission'];
 
-            $link = explode('/',$req->link);
-            $new_link = $link[4];            
+            $link = explode('/',$req->link);            
+            $new_link = $link[6];            
             $headers = ["Cache-Control" => "no-store, no-cache, must-revalidate, max-age=0"];
             $path = storage_path("app/images".'/'.$new_link);
 
 
-            if($access == 'public' || $access == 'Public' || $access == 'PUBLIC') // display public image
+            if($access == 'public' && $permission == "1") // display public image
             {
                 if(file_exists($path)) 
                 {
@@ -488,12 +479,12 @@ class PhotosController extends Controller
                     return response()->json(["error"=>"error in fetching profile picture"],400);
                 }
             }
-            else if($access == 'hidden' || $access == 'Hidden' || $access == 'HIDDEN')  // display hidden image
+            else if($access == 'hidden' && $permission == "0")  // display hidden image
             {
-                $msg = "Not Allowed.";
+                $msg = "Not Allowed / Hidden.";
                 return response()->json(['Message' => $msg]);
             }
-            else if($access == 'private' || $access == 'Private' || $access == 'PRIVATE') // display private image
+            else if($access == 'private' && $permission == 1) // display private image
             {
                 if(file_exists($path)) 
                 {
@@ -503,7 +494,12 @@ class PhotosController extends Controller
                 {
                     return response()->json(["error"=>"error in fetching profile picture"],400);
                 }
-            }            
+            }  
+            else if($access == 'private'&& $permission == "0") // display private image
+            {
+                $msg = "Not Allowed Too See.";
+                return response()->json(['Message' => $msg]);
+            }          
         }
         catch(\Exception $show_error)
         {

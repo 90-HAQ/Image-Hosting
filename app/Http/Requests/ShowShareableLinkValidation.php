@@ -27,7 +27,6 @@ class ShowShareableLinkValidation extends FormRequest
     {
         return 
         [
-            'token'    =>  'required',
             'link'     =>  'required|string',
         ];
     }
