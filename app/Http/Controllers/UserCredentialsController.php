@@ -49,15 +49,20 @@ class UserCredentialsController extends Controller
             $profile_path=$url."/user/storage/images/".$fileName; // set file path in database
             $path=storage_path('app\\images').'\\'.$fileName; // set file path in project
             file_put_contents($path,base64_decode($image)); // put path in project storage
+
             
 
-            $name = $user->name = $req->input('name');
-            $age = $user->age = $req->input('age');
-            $password = $user->password = Hash::make($req->input('password')); // return hashed password
-            $sendto = $email = $user->email = $req->input('email');
+            $name = $user->name = $req->name;
+            $age = $user->age = $req->age;
+            $password = $org_pass = $user->password = $req->password; // get password in two seprate variables 
+            $password = Hash::make($password); // return hashed password
+            $sendto = $email = $user->email = $req->email;
             $status = $user->status = 0;
             $verify_token = $user->verify_token = rand(10, 5000);
 
+            // send data back to user for updation profile credentials purpose witj original password.
+            // so here hash password will not make a problem for front-end.
+            $Adata = ['image' => $profile_path, 'name' => $name, 'age' => $age, 'password' => $org_pass, 'email' => $email];
 
             $coll = new MongoDatabaseConnection();
             $table = 'users';
@@ -80,7 +85,8 @@ class UserCredentialsController extends Controller
             {
                 $send_email_verify = new Email_Service();
                 $result = $send_email_verify->sendmail($sendto, $verify_token);
-                return response($result,200);
+                return response(['Message' => $result, 'Data' => $Adata],200);
+                //return response([$result,200]);
             }
             else
             {
@@ -99,7 +105,6 @@ class UserCredentialsController extends Controller
     {
         try
         {
-            
             $coll = new MongoDatabaseConnection();
             $table = 'users';
             $coll2 = $coll->db_connection();
@@ -162,6 +167,16 @@ class UserCredentialsController extends Controller
                     array('$set'=>array('remember_token' => $jwt, 'status' => '1')));
     
                     return response()->json(['Message' => 'Now you are logged In', 'token' => $jwt], 200);
+
+                    // $Adata = $coll2->$table->findOne(
+                    // [
+                    //     'email' => $email
+                    // ]);
+
+                    // $Adata = ['image' => $Adata['profile'], 'name' => $Adata['name'], 'age' => $Adata['age'], 'password' => $Adata['password'], 'email' => $Adata['email']];
+
+                    // send data in object to front-end to save but password here cannot be unhashed so it's a problem here.
+                    //return response()->json(['Message' => 'Now you are logged In', 'token' => $jwt, 'data' => $Adata], 200);
                 }
                 else
                 {
@@ -171,7 +186,6 @@ class UserCredentialsController extends Controller
             else
             {
                 return response()->json(['Message' => 'Invalid User Credentials..!!!'], 404);
-                //return response(['Message' => 'Your email '.$user->email.' is not verified. Please verify your email first.']);
             }
         }
         catch(\Exception $show_error)
@@ -179,7 +193,7 @@ class UserCredentialsController extends Controller
             return response()->json(['Error' => $show_error->getMessage()], 500);
         }
     }
-    
+
 
     // user update profile details function
     function user_update_profile_details(UserProfileUpdateValidation $req)

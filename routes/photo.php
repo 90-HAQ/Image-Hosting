@@ -69,7 +69,12 @@ Route::group(['middleware' => "tokenAuth"], function()
     // get a shareable link
     Route::post('/get_a_shareable_link', [PhotosController::class, 'get_a_shareable_link']);
 
-    // show a shareable link
+    // show a shareable link post (private, hidden)
     Route::post('/show_link', [PhotosController::class, 'show_link'])->middleware('getAShareableLink');
+
+    // show a shareable link get (public)
+    Route::get('/show_link', [PhotosController::class, 'show_link'])->middleware('getAShareableLink');
+
+    
 });
 
