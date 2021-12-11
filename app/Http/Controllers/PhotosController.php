@@ -46,25 +46,32 @@ class PhotosController extends Controller
                     // get user id
                     $id = $find['_id']; 
 
-
                     // get validated data
                     // creates a local path for image so user can access the image directly.
                     $access = 'hidden';
-                    
-                    $photo=$req->file('photo');
-                    
-                    $photo_array = (array)$photo; // put photo in array
-                    
-                    $name = $photo_array["\x00Symfony\Component\HttpFoundation\File\UploadedFile\x00originalName"]; // get photo name
 
-                    $photoData = explode('.',$name); // seprated the data where . is found
-
-                    $name = $photoData[0]; // get photo name
-                    $ext = $photoData[1]; // get photo extension
-
-                    
-                    $photo=$req->file('photo')->store('images'); // store image path
-                    $photo_path=$_SERVER['HTTP_HOST']."/user/storage/".$photo; // get localhost image path
+                    $name = $req->image_name;
+                    $base64_string =  $req->image; // get file in encoded form from the user(front-end)
+                    $extension = explode('/', explode(':', substr($base64_string, 0, strpos($base64_string, ';')))[1])[1]; // .jpg .png .pdf
+                    $replace = substr($base64_string, 0, strpos($base64_string, ',')+1);
+                    $image = str_replace($replace, '', $base64_string); // will get the image name but not original name because the original name is changed. 
+                    $image = str_replace(' ', '+', $image); // get image without spaces
+                    $fileName = time().'.'.$extension; // get file extension
+        
+                    // get request type and change http tppe according to it.
+                    if(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on')
+                    {
+                        $url = "https://";
+                    }
+                    else
+                    {
+                        $url = "http://";
+                    }
+        
+                    $url.= $_SERVER['HTTP_HOST'];
+                    $photo_path=$url."/user/storage/images/".$fileName; // set file path in database
+                    $path=storage_path('app\\images').'\\'.$fileName; // set file path in project
+                    file_put_contents($path,base64_decode($image)); // put path in project storage
     
                     
                     $coll = new MongoDatabaseConnection();
@@ -75,7 +82,7 @@ class PhotosController extends Controller
                     [
                         'user_id'           =>       $id,
                         'photo_name'        =>       $name,
-                        'Photo_extension'   =>       $ext,
+                        'Photo_extension'   =>       $extension,
                         'photo_path'        =>       $photo_path,
                         'date'              =>       date("d:m:Y"), // date , month ,year
                         'time'              =>       date("h:i:sa"), // hours , minutes ,seconds

@@ -26,7 +26,6 @@ class UserCredentialsController extends Controller
 
             // simple store profile image path in storage folder
             // $profile = $user->profile = $req->file('profile')->store('profile');
-
             
             $base64_string =  $req->image; // get file in encoded form from the user(front-end)
             $extension = explode('/', explode(':', substr($base64_string, 0, strpos($base64_string, ';')))[1])[1]; // .jpg .png .pdf
