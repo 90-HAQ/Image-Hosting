@@ -27,8 +27,13 @@ class PhotoSearchingValidation extends FormRequest
     {
         return 
         [
-            //'token'       =>    'required',
+            'name'          =>   'nullable|alpha_dash',
+            'extension'     =>   'nullable|alpha',
+            'date'          =>   'nullable|string',   
+            'time'          =>   'nullable|string',
+            'access'        =>   'nullable|alpha',
         ];
+        //date, time, name, extensions, private, public, hidden
     }
 
     public function failedValidation(Validator $validator)

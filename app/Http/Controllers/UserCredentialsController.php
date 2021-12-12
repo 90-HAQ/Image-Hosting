@@ -18,57 +18,43 @@ use App\Services\Base_64_Conversion; // get base-64 conversion
 
 class UserCredentialsController extends Controller
 {
-    // user signup function
+    /***
+     * @@ Function : User Signup's A New Account @@
+     * 
+     * Commenting,
+     * line 39 : // get all requested parameters in specfic variables.
+     * line 43 : // get password in two seprate variables.
+     * line 43 : // send data back to user for updation profile credentials purpose with original password.
+     * line 43 : // so here hash password will not make a problem for front-end.
+     * line 44 : // get hashed password.
+     * line 49 : // get decoded base-64 image from base_64_coonversion_of_image Service.                    
+    */ 
     public function signup(SignupValidation $req)
     {
         try
         {
             $user = new User;
-
-            // simple store profile image path in storage folder
-            // $profile = $user->profile = $req->file('profile')->store('profile');
-
             $non_base_image =  $req->image;
             $name = $user->name = $req->name;
             $age = $user->age = $req->age;
-            $password = $org_pass = $user->password = $req->password; // get password in two seprate variables 
-            $password = Hash::make($password); // return hashed password
+            $password = $org_pass = $user->password = $req->password; 
+            $password = Hash::make($password);
             $sendto = $email = $user->email = $req->email;
             $status = $user->status = 0;
             $verify_token = $user->verify_token = rand(10, 5000);
-
-
-            $base = new Base_64_Conversion; // base service image conversion service
-            $image = $base->base_64_coonversion_of_image($non_base_image); // get function data in return 
+            $base = new Base_64_Conversion;
+            $image = $base->base_64_coonversion_of_image($non_base_image);
             $profile_path = $image['path'];
-
-            // send data back to user for updation profile credentials purpose witj original password.
-            // so here hash password will not make a problem for front-end.
             $Adata = ['image' => $profile_path, 'name' => $name, 'age' => $age, 'password' => $org_pass, 'email' => $email];
-
             $coll = new MongoDatabaseConnection();
             $table = 'users';
             $coll2 = $coll->db_connection();
-
-            $insert = $coll2->$table->insertOne(
-            [
-                'profile'              =>       $profile_path,
-                'name'                 =>       $name,
-                'age'                  =>       $age,
-                'password'             =>       $password,
-                'email'                =>       $email,
-                'status'               =>       $status,
-                'verify_token'         =>       $verify_token,
-                'remember_token'       =>       null,
-                'email_verified_at'    =>       null,
-            ]);
-
+            $insert = $coll2->$table->insertOne([ 'profile' => $profile_path, 'name' => $name, 'age' => $age, 'password' => $password, 'email' => $email, 'status' => $status, 'verify_token' => $verify_token, 'remember_token' => null, 'email_verified_at' => null ]);
             if(!empty($insert))
             {
                 $send_email_verify = new Email_Service();
                 $result = $send_email_verify->sendmail($sendto, $verify_token);
                 return response(['Message' => $result, 'Data' => $Adata],200);
-                //return response([$result,200]);
             }
             else
             {
@@ -82,7 +68,12 @@ class UserCredentialsController extends Controller
     }
 
 
-    // welcome api for user email verification function
+    /***
+     * @@ Function : User Verify Account Through Mail@@
+     * 
+     * Commenting,
+     * line 87 : // time and date will be updated in db after verifing your account.
+    */ 
     public function welcome_to_login($email, $verify_token)
     {
         try
@@ -90,18 +81,10 @@ class UserCredentialsController extends Controller
             $coll = new MongoDatabaseConnection();
             $table = 'users';
             $coll2 = $coll->db_connection();
-    
-            $find = $coll2->$table->findOne(
-            [
-                'email' => $email,
-                'verify_token' => (int)$verify_token,
-            ]);
-    
+            $find = $coll2->$table->findOne([ 'email' => $email, 'verify_token' => (int)$verify_token ]);
             if(!empty($find))
             {
-                $coll2->$table->updateMany(array("email"=>$email),
-                array('$set'=>array('email_verified_at' => date('Y-m-d H:i:s'), 'updated_at' => date('Y-m-d H:i:s'))));
-                
+                $coll2->$table->updateMany(array("email"=>$email), array('$set'=>array('email_verified_at' => date('Y-m-d H:i:s'), 'updated_at' => date('Y-m-d H:i:s'))));
                 return response(['Message'=>'Your Email has been Verified'], 200);
             }
             else
@@ -116,49 +99,35 @@ class UserCredentialsController extends Controller
     }
 
 
-    // user login function
+    /***
+     * @@ Function : User Login To Account @@
+     * 
+     * Commenting,
+     * line 116 : // get all record of user from verifiedAccount-middleware where email_verified_at is getting checked.
+     * line 117 : // get status and password in order to proceed further.
+     * line 119 : // get validated data in new variables from request form data.
+    */ 
     public function login(LoginValidation $req)
     {
         try
         {
             $pas = 0;
             $status = 0;
-
-            // get all record of user from verifiedAccount-middleware where email_verified_at is getting checked.
-            $user_record = $req->user_data;
-            $pas = $user_record->password; 
-            $status = $user_record->status;  
-    
+            $user_record = $req->user_data; 
+            $pas = $user_record->password;  $status = $user_record->status;
             $user = new User;
-            $email = $user->email = $req->input('email');
-            $password = $user->password = $req->input('password');
-
-    
+            $email = $user->email = $req->email; $password = $user->password = $req->password; 
             if(Hash::check($password, $pas))
             {
                 if($status == 0)
                 {
                     $jwt_connection = new JWT_Service();
                     $jwt = $jwt_connection->get_jwt();
-
                     $coll = new MongoDatabaseConnection();
                     $table = 'users';
                     $coll2 = $coll->db_connection();
-    
-                    $coll2->$table->updateMany(array("email"=>$email),
-                    array('$set'=>array('remember_token' => $jwt, 'status' => '1')));
-    
+                    $coll2->$table->updateMany(array("email"=>$email), array('$set'=>array('remember_token' => $jwt, 'status' => '1')));
                     return response()->json(['Message' => 'Now you are logged In', 'token' => $jwt], 200);
-
-                    // $Adata = $coll2->$table->findOne(
-                    // [
-                    //     'email' => $email
-                    // ]);
-
-                    // $Adata = ['image' => $Adata['profile'], 'name' => $Adata['name'], 'age' => $Adata['age'], 'password' => $Adata['password'], 'email' => $Adata['email']];
-
-                    // send data in object to front-end to save but password here cannot be unhashed so it's a problem here.
-                    //return response()->json(['Message' => 'Now you are logged In', 'token' => $jwt, 'data' => $Adata], 200);
                 }
                 else
                 {
@@ -177,69 +146,70 @@ class UserCredentialsController extends Controller
     }
 
 
-    // user update profile details function
+    /***
+     * @@ Function : User Updates Profile @@
+     * 
+     * Commenting,
+     * line 168 : // get all record of user from middleware where token is getting checked.
+     * line 171 : // for logic purpose for user update credentials
+     * line 172 : // get token from middleware
+     * line 173 : // get validated data from request form data.
+     * line 183 : // base service image conversion service
+     * line 184 : // get function data in return 
+     * line 193 : // return hashed password
+     * line 195 : // make an associative array and put all details in it.
+     * line 196 : // run for each loop and update those enteties who are not null.
+     * line 212 : // if plus and minus is == 5 and $plus is != to 0 then go in else that means there was nothing to update
+    */    
     function user_update_profile_details(UserProfileUpdateValidation $req)
     {
         try
         {
-            // get all record of user from middleware where token is getting checked.
             $user_record = $req->user_data;
-            
             if(!empty($user_record))
             {
-                
-                $token = $user_record->remember_token; // get token from middleware
-                $plus = $minus = 0; // for logic purpose for user update credentials
-
-                // get validated data
-                $non_base_image = $req->profile;
+                $plus = $minus = 0; 
+                $token = $user_record->remember_token; 
+                $non_base_image = $req->profile; 
+                $name = $req->name;
+                $age = $req->age;
+                $email = $req->email;
                 if(empty($non_base_image))
                 {
                     $profile_path = null;    
                 }
                 else
                 {
-                    $base = new Base_64_Conversion; // base service image conversion service
-                    $image = $base->base_64_coonversion_of_image($non_base_image); // get function data in return 
+                    $base = new Base_64_Conversion; 
+                    $image = $base->base_64_coonversion_of_image($non_base_image); 
                     $profile_path = $image['path'];
                 }
-                $name = $req->name;
-                $age = $req->age;
                 if(empty($req->password))
                 {
                     $password = null;    
                 }
                 else
                 {
-                    $password = Hash::make($req->password); // return hashed password
+                    $password = Hash::make($req->password); 
                 }
-                $email = $req->email;
-
-                // make an associative array and put all details in it.
-                $data_arr = ['profile' => $profile_path, 'name' => $name, 'age' => $age,
-                            'password' => $password, 'email' => $email];                         
-                
-                // run for each loop and update those enteties who are not null.
+                $data_arr = ['profile' => $profile_path, 'name' => $name, 'age' => $age, 'password' => $password, 'email' => $email];
                 foreach($data_arr as $key=>$value)
                 {
                     if(!empty($value))
                     {
                         $plus++;
-
                         $coll = new MongoDatabaseConnection();
                         $table = 'users';
                         $coll2 = $coll->db_connection();
-                        $coll2->$table->updateMany(array("remember_token"=>$token),
-                        array('$set'=>array($key => $value)));
+                        $coll2->$table->updateMany(array("remember_token"=>$token), array('$set'=>array($key => $value)));
                     }
                     else
                     {
-                        $minus++;
+                        $minus++; 
                         continue;
                     }
                 }
-
-                if(($plus + $minus) == 5 && $plus != 0) // if plus and minus is == 5 and $plus is != to 0 then go in else that means there was nothing to update
+                if(($plus + $minus) == 5 && $plus != 0) 
                 {
                     return response()->json(['Message' => 'User Credentials Updated'], 200);    
                 }
@@ -264,35 +234,32 @@ class UserCredentialsController extends Controller
     }
 
 
-    // user forgets password after signup and can't login, so reset password function.
+    /***
+     * @@ Function : User Forgot Password @@
+     * 
+     * Commenting,
+     * line 256 : // get data of email verified from user
+     * line 261 : // call email service to send an email to the user.
+     * line 262 : // send a new generated otp to reset password.
+    */     
     function userForgetPassword(UserForgotValidation $req)
     {
         try
         {
-            $mail = $req->input('email');
-    
+            $mail = $req->email;
             $coll = new MongoDatabaseConnection();
             $table = 'users';
             $coll2 = $coll->db_connection();
-    
-            $find = $coll2->$table->findOne(
-            [
-                'email' => $mail,
-            ]);
-            
+            $find = $coll2->$table->findOne([ 'email' => $mail ]);
             if(!empty($find))
             {
-                // get data of email verified from user
-                $verfiy =$find->email_verified_at;
-    
+                $verfiy =$find->email_verified_at; 
                 if(!empty($verfiy))
                 {
                     $otp=rand(1000,9999);
-                    $coll2->$table->updateMany(array("email"=>$mail),
-                    array('$set'=>array('verify_token' => $otp)));
-    
+                    $coll2->$table->updateMany(array("email"=>$mail), array('$set'=>array('verify_token' => $otp)));
                     $send_email_verify = new Email_Service();
-                    $result = $send_email_verify->sendMailForgetPassword($mail,$otp);
+                    $result = $send_email_verify->sendMailForgetPassword($mail,$otp); 
                     return response()->json(['Message'=> $result], 200);
                 }
                 else
@@ -312,41 +279,40 @@ class UserCredentialsController extends Controller
     }
 
 
-    // get otp-token and veirfy then update the user new password function.
+    /***
+     * @@ Function : User Change Password @@
+     * 
+     * Commenting,
+     * line 294 : // get validated request from form data.
+     * line 303 : // get verify token form db to match otp(param).
+    */     
     function userChangePassword(UserChangePasswordValidation $req)
     {
         try
         {
             $user = new User;
-            $mail = $user->email = $req->input('email');
-            $otp = $user->otp = $req->input('otp');
-            $pass=Hash::make($req->input('password'));
-    
+            $mail = $user->email = $req->email; 
+            $otp = $user->otp = $req->otp; 
+            $pass = Hash::make($req->password);
             $coll = new MongoDatabaseConnection();
             $table = 'users';
             $coll2 = $coll->db_connection();
-    
-            $find = $coll2->$table->findOne(
-            [
-                'email' => $mail,
-            ]);
-            
+            $find = $coll2->$table->findOne( [ 'email' => $mail, ]);
             if(!empty($find))
             {
                 $token1 = $find['verify_token']; 
-    
                 if($token1==$otp)
                 {
-                    $coll2->$table->updateMany(array("email"=>$mail),
-                    array('$set'=>array('password' => $pass)));
-    
+                    $coll2->$table->updateMany(array("email"=>$mail), array('$set'=>array('password' => $pass)));
                     return response()->json(['Message'=>'Your Password has been updated so now you can login easily.. Thankyou..!!!!. '], 200);
                 }
-                else{
+                else
+                {
                     return response()->json(['Message'=>'Otp Does Not Match. '], 404);
                 }
             }
-            else{
+            else
+            {
                 return response()->json(['Message'=>'Please Enter Valid Mail. '], 404); 
             }
         }
@@ -357,33 +323,28 @@ class UserCredentialsController extends Controller
     }
 
 
-    // user logout function
+    /***
+     * @@ Function : User Logout @@
+     * 
+     * Commenting,
+     * line 337 : // get all record of user from middleware where token is getting checked.
+     * line 340 : // get token id from middleware.
+    */  
     public function user_logout(Request $req)
     {
         try
         {
-            // get all record of user from middleware where token is getting checked
-            $user_record = $req->user_data;
-
+            $user_record = $req->user_data; 
             if(!empty($user_record))
             {
-                // get token id from middleware 
-                $token = $user_record->remember_token;
-
+                $token = $user_record->remember_token;     
                 $coll = new MongoDatabaseConnection();
                 $table = 'users';
                 $coll2 = $coll->db_connection();
-        
-                $find = $coll2->$table->findOne(
-                [
-                    'remember_token' => $token,
-                ]);
-
+                $find = $coll2->$table->findOne([ 'remember_token' => $token ]);
                 if(!empty($find))
                 {
-                    $coll2->$table->updateMany(array("remember_token"=>$token),
-                    array('$set'=>array('remember_token' => null, 'status' => '0')));
-    
+                    $coll2->$table->updateMany(array("remember_token"=>$token), array('$set'=>array('remember_token' => null, 'status' => '0')));
                     return response()->json(['Message' => 'Logout Succeccfully..!!'],200);
                 }
                 else

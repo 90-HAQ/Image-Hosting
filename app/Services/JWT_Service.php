@@ -6,9 +6,15 @@ use Illuminate\Support\Facades\Config;
 
 class JWT_Service
 {
+    /***
+     * @ Function : Genereating JWT TOken @
+     * 
+     * Commentings,
+     * line 24 : // jwt token generated.
+     * line 25 : // jwt token returned.
+     */
     public function get_jwt()
     {
-        // jwt token generate
         $key = Config::get('Constant.Key');
         $payload = array(
             "iss" => "localhost",
@@ -16,10 +22,7 @@ class JWT_Service
             "iat" => time(),
             "nbf" => 1357000000
         );
-
         $jwt = JWT::encode($payload, $key, 'HS256');
-        
         return $jwt;
     } 
-
 }

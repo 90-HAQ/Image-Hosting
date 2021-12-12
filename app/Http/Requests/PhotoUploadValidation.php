@@ -27,7 +27,7 @@ class PhotoUploadValidation extends FormRequest
     {
         return 
         [
-            'photo'     =>  'required',
+            'photo'     =>  'required|string',
         ];
     }
 

@@ -17,7 +17,7 @@ class PhotoMakePrivate extends FormRequest
     {
         return 
         [
-            'photoID'     =>  'required',
+            'photoID'     =>  'required|string',
         ];
     }
 

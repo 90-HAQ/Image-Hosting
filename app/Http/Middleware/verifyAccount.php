@@ -24,11 +24,7 @@ class verifyAccount
         $table = 'users';
         $coll2 = $coll->db_connection();
 
-        $find = $coll2->$table->findOne(
-        [
-            'email' => $email,
-            // 'password' => $password,
-        ]);
+        $find = $coll2->$table->findOne([ 'email' => $email ]);
 
         if(!empty($find))
         {

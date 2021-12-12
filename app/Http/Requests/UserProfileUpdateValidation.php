@@ -27,7 +27,11 @@ class UserProfileUpdateValidation extends FormRequest
     {
         return 
         [
-            'name'       =>    'required',
+            'profile'    =>   'nullable|string',
+            'name'       =>   'nullable|alpha_dash',
+            'age'        =>   'nullable|numeric',   
+            'password'   =>   'nullable|string|min:5',
+            'email'      =>   'nullable|email',
         ];
     }
 

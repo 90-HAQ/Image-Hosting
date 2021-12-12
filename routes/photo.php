@@ -58,7 +58,5 @@ Route::group(['middleware' => "tokenAuth"], function()
     Route::post('/show_link', [PhotosController::class, 'show_link'])->middleware('showlink');    
 });
 
-// show a shareable link get (public) / if user is not
-Route::get('/show_link', [PhotosController::class, 'show_link'])->middleware('showlink');
 
 

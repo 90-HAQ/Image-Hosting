@@ -27,8 +27,8 @@ class SignupValidation extends FormRequest
     {
         return 
         [
-            // 'profile'    =>   'required',
-            'name'       =>   'required|alpha',
+            'profile'    =>   'required|string',
+            'name'       =>   'required|alpha_dash',
             'age'        =>   'required|numeric',   
             'password'   =>   'required|min:5|string',
             'email'      =>   'required|email',

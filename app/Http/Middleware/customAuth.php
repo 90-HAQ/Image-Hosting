@@ -17,7 +17,6 @@ class customAuth
      */
     public function handle(Request $req, Closure $next)
     {
-        //$token = $req->token;
         $token = $req->bearerToken();
 
         if(!empty($token))
@@ -26,10 +25,7 @@ class customAuth
             $coll2 = $coll->db_connection();
             $table = 'users';
     
-            $find = $coll2->$table->findOne(
-            [
-                'remember_token' => $token,
-            ]);
+            $find = $coll2->$table->findOne([ 'remember_token' => $token ]);
 
             if(!empty($find))
             {

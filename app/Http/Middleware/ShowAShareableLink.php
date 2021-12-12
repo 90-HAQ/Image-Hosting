@@ -17,9 +17,6 @@ class ShowAShareableLink
      */
     public function handle(Request $req, Closure $next)
     {
-
-        //dd($method = $req->method()); to check what the method type is
-
         /***
          * 
          * check if image is public then allow to anyone
@@ -28,7 +25,9 @@ class ShowAShareableLink
          * 
          * check if image is private then chack given access
          * 
-         */ 
+        */ 
+        
+        //dd($method = $req->method()); to check what the method type is
 
         $token = $req->token;
         $link = $req->link;
@@ -41,17 +40,10 @@ class ShowAShareableLink
         /* $find1 = $coll2->$table->findOne(["_id"=> $photoID, "photo_access_to" => $check_email]); */
 
         $table = 'photos'; // table name
-        $find1 = $coll2->$table->findOne(
-        [
-            'photo_path' => $link
-        ]);
+        $find1 = $coll2->$table->findOne([ 'photo_path' => $link ]);
         
-
         $table = 'users'; // table name
-        $find2 = $coll2->$table->findOne(
-        [
-            'remember_token' => $token
-        ]);
+        $find2 = $coll2->$table->findOne([ 'remember_token' => $token ]);
 
         // check if photo exists by (photo_record)
         if(!empty($find1))
