@@ -18,7 +18,7 @@ class ShowAShareableLink
     public function handle(Request $req, Closure $next)
     {
 
-        dd($method = $req->method());
+        //dd($method = $req->method()); to check what the method type is
 
         /***
          * 

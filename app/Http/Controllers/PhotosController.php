@@ -21,14 +21,11 @@ class PhotosController extends Controller
     {
         try
         {
-            // get all record of user from middleware where token is getting checked.
-            $user_record = $req->user_data;
-
+            $user_record = $req->user_data; // get all record of user from middleware where token is getting checked.
 
             if(!empty($user_record))
             {
-                // get token from middleware
-                $token = $user_record->remember_token;
+                $token = $user_record->remember_token; // get token from middleware
 
                 $coll = new MongoDatabaseConnection();
                 $table = 'users';
@@ -41,13 +38,12 @@ class PhotosController extends Controller
 
                 if(!empty($find))
                 {
-                    // get user id
-                    $id = $find['_id']; 
+                    $id = $find['_id']; // get user id
 
-                    // get validated data
-                    $access = 'hidden';
+                    // get validated data                    
                     $name = $req->name;
                     $non_base_image = $req->photo;
+                    $access = 'hidden';
 
                     $base = new Base_64_Conversion; // base service image conversion service
                     $image = $base->base_64_coonversion_of_image($non_base_image); // get function data in return 
@@ -94,26 +90,16 @@ class PhotosController extends Controller
     {
         try
         {
-            // get all record of user from middleware where token is getting checked
-            $user_record = $req->user_data;
-
+            $user_record = $req->user_data; // get all record of user from middleware where token is getting checked
             if(!empty($user_record))
             {
-                // get user id from middleware 
-                $uid = $user_record->_id;
-
-                // get pid from user request
-                $pid = $req->input('photoID');
-
+                $uid = $user_record->_id; // get user id from middleware 
+                $pid = $req->input('photoID'); // get pid from user request
                 $coll = new MongoDatabaseConnection();
                 $table = 'photos';
                 $coll2 = $coll->db_connection();
-    
-                // this error will be always shown so ignore it.
-                $ppid = new \MongoDB\BSON\ObjectId($pid);
-    
+                $ppid = new \MongoDB\BSON\ObjectId($pid); // this error will be always shown so ignore it.
                 $delete = $coll2->$table->deleteOne(array("user_id"=> $uid, "_id"=>$ppid));
-                
                 if(!empty($delete))
                 {
                     return response(['Message'=>'Photo Deleted'], 200);   
