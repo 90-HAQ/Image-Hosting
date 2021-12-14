@@ -6,7 +6,7 @@ Image Hosting is a cloud-based image-storage solution that allows you to save fi
 
 # Documentation
 
-The Documentation is avaliable at [click here](https://github.com/90-HAQ/Employee-Management/blob/main/)
+The Documentation is avaliable at [click here](https://github.com/90-HAQ/Image-Hosting/blob/main/Image%20Hosting%20Document.docx)
 
 
 
