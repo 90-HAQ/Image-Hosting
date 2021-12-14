@@ -4,4 +4,4 @@ Image Hosting is a cloud-based image-storage solution that allows you to save fi
 
 ## Documentation
 
-The project is Rest Api's made on > Laravel, which retrives the data from the user and stores it in the database.
+The project is Rest Api's made on **Laravel**, which retrives the data from the user and stores it in the database.
