@@ -336,7 +336,7 @@ Then open the project and start working on it.
 
     -   https://devcenter.heroku.com/articles/config-vars
 
-# Deployed API's Link
+# Deployed API'S Link
 
 - **Signup  API : https://imagehosting10.herokuapp.com/user/signup**
 
