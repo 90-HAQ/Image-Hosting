@@ -216,7 +216,7 @@ Then open the project and start working on it.
 
 -	By default, image access type will be hidden.
 
-(8)	Delete / Remove Photo Api
+# (8) Delete / Remove Photo Api
 -	Remove Photo Requirements (jwt_token, user_id, photo/image) in form data.
 
 -	Make a Request file for User Remove and validate all inputs that are required.
