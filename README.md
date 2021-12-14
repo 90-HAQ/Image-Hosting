@@ -6,7 +6,11 @@ Image Hosting is a cloud-based image-storage solution that allows you to save fi
 
 # Documentation
 
+<<<<<<< HEAD
 The project is Rest Api's made on **Laravel**, which retrives the data from the user and stores it in the database.
+=======
+The Documentation is avaliable at [click here](https://github.com/90-HAQ/Image-Hosting/blob/main/Image%20Hosting%20Document.docx)
+>>>>>>> 30fa95635b13a8f06d85df507417101d8462c79d
 
 
 
@@ -336,7 +340,11 @@ Then open the project and start working on it.
 
     -   https://devcenter.heroku.com/articles/config-vars
 
+<<<<<<< HEAD
 # Deployed API's Link
+=======
+# Deployed API'S Link
+>>>>>>> 30fa95635b13a8f06d85df507417101d8462c79d
 
 - **Signup  API : https://imagehosting10.herokuapp.com/user/signup**
 
@@ -368,4 +376,8 @@ Then open the project and start working on it.
 
 - **Show Generated Link  API : https://imagehosting10.herokuapp.com/photo/show_link**
 
+<<<<<<< HEAD
 - **Logout API : https://imagehosting10.herokuapp.com/user/logout**
+=======
+- **Logout API : https://imagehosting10.herokuapp.com/user/logout**
+>>>>>>> 30fa95635b13a8f06d85df507417101d8462c79d
